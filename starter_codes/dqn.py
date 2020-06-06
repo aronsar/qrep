@@ -47,33 +47,40 @@ class QLearner(nn.Module):
     
     def act(self, state, epsilon):
         if random.random() > epsilon:
-            Image.fromarray(state[0,:,:], 'L').save('states/t.png')
+            #Image.fromarray(state[0,:,:], 'L').save('states/t.png')
             state   = Variable(torch.FloatTensor(np.float32(state)).unsqueeze(0), requires_grad=True)
             q_value = self.forward(state)
-            action = torch.argmax(q_value).detach().cpu().tolist()
+            action = torch.argmax(q_value).data.cpu()
 
         else:
             action = random.randrange(self.env.action_space.n)
 
         return action
         
-def compute_td_loss(model, batch_size, gamma, replay_buffer):
+def compute_td_loss(model, target_model, batch_size, gamma, replay_buffer):
     state, action, reward, next_state, done = replay_buffer.sample(batch_size)
 
     state = Variable(torch.FloatTensor(np.float32(state)))
     next_state = Variable(torch.FloatTensor(np.float32(next_state)), requires_grad=True)
     action = Variable(torch.LongTensor(action))
     reward = Variable(torch.FloatTensor(reward))
-    done = Variable(torch.FloatTensor(done))
+    #done = Variable(torch.FloatTensor(done))
 
-    ######## YOUR CODE HERE! ########
-    # TODO: Implement the Temporal Difference Loss
-    # loss =
-    ######## YOUR CODE HERE! ########
+    qnext = target_model.forward(next_state)
+    qnext_max = qnext.max(axis=1)[0]
 
+    qthis = model.forward(state)
+    qthis_max = qthis.gather(1, action.unsqueeze(1)).view(-1) # must use action, since sometimes action is non-optimal
 
+    target = reward + (gamma * qnext_max)
+    target = target.view(-1)
+
+    batch_loss = (target.detach() - qthis_max).pow(2)
+
+    loss = batch_loss.sum()
 
     return loss
+
 
 
 class ReplayBuffer(object):
