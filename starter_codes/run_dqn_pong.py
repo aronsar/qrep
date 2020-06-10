@@ -9,7 +9,6 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.autograd as autograd 
 import time
-import copy
 import torch.nn.functional as F
 USE_CUDA = torch.cuda.is_available()
 from dqn import QLearner, compute_td_loss, ReplayBuffer
@@ -27,7 +26,7 @@ replay_initial = 10000
 replay_buffer = ReplayBuffer(100000)
 model = QLearner(env, num_frames, batch_size, gamma, replay_buffer)
 target_model = QLearner(env, num_frames, batch_size, gamma, replay_buffer)
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
 if USE_CUDA:
     model = model.cuda()
     target_model = target_model.cuda()

@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.autograd as autograd
-from PIL import Image
 import math, random
 Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda() if USE_CUDA else autograd.Variable(*args, **kwargs)
 USE_CUDA = torch.cuda.is_available()
@@ -56,6 +55,9 @@ class QLearner(nn.Module):
             action = random.randrange(self.env.action_space.n)
 
         return action
+    
+    def copy_from(self, target):
+        self.load_state_dict(target.state_dict())
         
 def compute_td_loss(model, target_model, batch_size, gamma, replay_buffer):
     state, action, reward, next_state, done = replay_buffer.sample(batch_size)
@@ -65,12 +67,13 @@ def compute_td_loss(model, target_model, batch_size, gamma, replay_buffer):
     action = Variable(torch.LongTensor(action))
     reward = Variable(torch.FloatTensor(reward))
     #done = Variable(torch.FloatTensor(done))
-
+    
+    # FIXME: refactor, since not your code
     qnext = target_model.forward(next_state)
     qnext_max = qnext.max(axis=1)[0]
 
     qthis = model.forward(state)
-    qthis_max = qthis.gather(1, action.unsqueeze(1)).view(-1) # must use action, since sometimes action is non-optimal
+    qthis_max = qthis.gather(1, action.unsqueeze(1)).view(-1) # must use action, since sometimes action is random
 
     target = reward + (gamma * qnext_max)
     target = target.view(-1)
