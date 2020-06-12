@@ -70,7 +70,7 @@ record_idx = 10000
 replay_initial = 10000
 replay_buffer_size = args.replay_buffer
 copy_frequency = args.copy_frequency
-epsilon_start = 1.0 # Epsilon is the chance of making a random move
+epsilon_start = 0.1 # Epsilon is the chance of making a random move
 epsilon_final = 0.01 # It trades of exploration vs exploitation
 epsilon_decay = args.epsilon_decay
 epsilon_by_frame = lambda frame_idx: epsilon_final + (epsilon_start - epsilon_final) \
@@ -179,7 +179,7 @@ for frame_idx in range(1, num_frames + 1):
         target_model.copy_from(model)
     
     # checkpointing and logging
-    if frame_idx % 20000 == 0:
+    if frame_idx % 100000 == 0:
         chkpt_savepath = generate_filename("./checkpoints", frame_idx, args, ".pth")
         torch.save(model.state_dict(), chkpt_savepath)
 
