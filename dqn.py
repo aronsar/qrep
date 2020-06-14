@@ -66,9 +66,7 @@ def compute_td_loss(model, target_model, batch_size, gamma, replay_buffer):
     next_state = Variable(torch.FloatTensor(np.float32(next_state)), requires_grad=True)
     action = Variable(torch.LongTensor(action))
     reward = Variable(torch.FloatTensor(reward))
-    #done = Variable(torch.FloatTensor(done))
-    
-    # FIXME: refactor, since not your code
+
     qnext = target_model.forward(next_state)
     qnext_max = qnext.max(axis=1)[0]
 
